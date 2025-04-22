@@ -62,6 +62,8 @@ void bios_const(void)
             c='\r';
         if(c==0x7F)
             c='\b';
+        if (c=='~')
+            c=3;
         cpu->registers->a = c;
         cpu->registers->p |= 0x01;
         cpu->registers->p &= ~0x02;
