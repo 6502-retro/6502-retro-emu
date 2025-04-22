@@ -376,15 +376,15 @@ void emulator_run(void)
                 rts();
                 continue;
             case BIOS_CONOUT:
-                sfos_c_write();
+                bios_conout();
                 rts();
                 continue;
             case BIOS_CONIN:
-                sfos_c_read();
+                bios_conin();
                 rts();
                 continue;
             case BIOS_CONST:
-                sfos_c_status();
+                bios_const();
                 rts();
                 continue;
             case EXIT_ADDRESS:

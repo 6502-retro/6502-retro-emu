@@ -33,6 +33,7 @@ enum {
 	C_WRITE,
 	C_PRINTSTR,
 	C_READSTR,
+	C_STATUS,
 };
 
 extern M6502* cpu;
@@ -50,9 +51,9 @@ extern void showregs(void);
 
 extern void sfos_entry();
 
-extern void sfos_c_read();
-extern void sfos_c_write();
-extern void sfos_c_status();
+extern void bios_conin();
+extern void bios_conout();
+extern void bios_const();
 
 #endif
 

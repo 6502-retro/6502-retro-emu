@@ -32,12 +32,12 @@ static void set_result(uint16_t xa, bool succeeded)
 }
 
 
-void sfos_c_write()
+void bios_conout()
 {
     (void)write(1, &cpu->registers->a, 1);
 }
 
-void sfos_c_read()
+void bios_conin()
 {
     char c = 0;
     (void)read(0, &c, 1);
@@ -47,7 +47,7 @@ void sfos_c_read()
 }
 
 
-void sfos_c_status(void)
+void bios_const(void)
 {
     uint8_t c=0;
 
@@ -102,10 +102,13 @@ void sfos_entry()
 {
     switch(cpu->registers->y) {
         case C_READ:
-            sfos_c_read();
+            bios_conin();
             break;
         case C_WRITE:
-            sfos_c_write();
+            bios_conout();
+            break;
+        case C_STATUS:
+            bios_const();
             break;
         case C_PRINTSTR:
             sfos_c_printstr();
