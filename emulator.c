@@ -388,7 +388,7 @@ void emulator_run(void)
                 rts();
                 continue;
             case EXIT_ADDRESS:
-                exit(0);
+                fatal("Exiting...");
         }
 
         if (ram[pc] == 0)

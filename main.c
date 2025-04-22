@@ -11,10 +11,33 @@
 #include <poll.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <termios.h>
 #include "globals.h"
 
 bool flag_enter_debugger = false;
 char* const* user_command_line = NULL;
+
+void cm_off(void)
+{
+    struct termios t;
+    tcgetattr(STDIN_FILENO, &t);
+    t.c_lflag &= ~ICANON; 
+    t.c_lflag &= ~ECHO;
+
+    // Apply the new settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &t); 
+}
+
+void cm_on(void)
+{
+    struct termios t;
+    tcgetattr(STDIN_FILENO, &t);
+    t.c_lflag |= ICANON; 
+    t.c_lflag |= ECHO;
+
+    // Apply the new settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &t); 
+}
 
 
 
@@ -25,6 +48,7 @@ void fatal(const char* message, ...)
     fprintf(stderr, "fatal: ");
     vfprintf(stderr, message, ap);
     fprintf(stderr, "\n");
+    cm_on();
     exit(1);
 }
 static void syntax(void)
@@ -87,6 +111,7 @@ static void read_file()
 
 int main(int argc, char* const* argv)
 {
+    cm_off();
     parse_options(argc, argv);
     emulator_init();
     read_file();
@@ -94,6 +119,6 @@ int main(int argc, char* const* argv)
     {
         emulator_run();
     }
-
+    cm_on();
     return 0;
 }

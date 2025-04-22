@@ -8,29 +8,12 @@
 #include <readline/history.h>
 #include <unistd.h>
 #include <poll.h>
-#include <termios.h>
 #include "globals.h"
 
-void cm_off(void)
+
+static uint16_t get_xa(void)
 {
-    struct termios t;
-    tcgetattr(STDIN_FILENO, &t);
-    t.c_lflag &= ~ICANON; 
-    t.c_lflag &= ~ECHO;
-
-    // Apply the new settings
-    tcsetattr(STDIN_FILENO, TCSANOW, &t); 
-}
-
-void cm_on(void)
-{
-    struct termios t;
-    tcgetattr(STDIN_FILENO, &t);
-    t.c_lflag |= ICANON; 
-    t.c_lflag |= ECHO;
-
-    // Apply the new settings
-    tcsetattr(STDIN_FILENO, TCSANOW, &t); 
+    return (cpu->registers->x << 8) | cpu->registers->a;
 }
 
 static void set_xa(uint16_t xa)
@@ -39,23 +22,15 @@ static void set_xa(uint16_t xa)
     cpu->registers->a = xa;
 }
 
-static uint16_t get_xa(void)
-{
-    return cpu->registers->x << 8 | cpu->registers->a;
-}
-
 static void set_result(uint16_t xa, bool succeeded)
 {
     set_xa(xa);
     if (succeeded)
-        cpu->registers->p &= ~0x01; /*carry clear*/
+        cpu->registers->p &= ~0x01;
     else
-        cpu->registers->p |= 0x01; /*carry set*/
-    if(xa==0)
-        cpu->registers->p |= 0x02; /*zero flag set*/
-    else
-        cpu->registers->p &= ~0x02; /*zero flag cleared*/
+        cpu->registers->p |= 0x01;
 }
+
 
 void sfos_c_write()
 {
@@ -64,18 +39,20 @@ void sfos_c_write()
 
 void sfos_c_read()
 {
-    uint8_t c = 0;
+    char c = 0;
     (void)read(0, &c, 1);
-    set_result(c,true);
+    if (c == '\n')
+        c = '\r';
+    set_result(c, true);
 }
 
 
 void sfos_c_status(void)
 {
-    cm_off();
     uint8_t c=0;
+
     struct pollfd pollfd = {0, POLLIN, 0};
-    poll(&pollfd, 1, 100);
+    poll(&pollfd, 1, 0);
     if (pollfd.revents & POLLIN)
     {
         (void)read(0,&c,1);
@@ -92,7 +69,6 @@ void sfos_c_status(void)
         cpu->registers->p &= ~0x01;
         cpu->registers->p |= 0x02;
     }
-    cm_on();
 }
 
 void sfos_c_printstr(void)

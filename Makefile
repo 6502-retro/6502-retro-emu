@@ -13,7 +13,7 @@ default: all
 all: emu
 
 emu: $(SRCS)
-	$(CC) $(CFLAGS) -o emu $^ -lreadline -lcurses
+	$(CC) $(CFLAGS) -o emu $^ -lreadline
 
 test.out:
 	ca65 -t none --cpu 65C02 -o test.o test.s -ltest.lst
