@@ -11,6 +11,8 @@
 #include "globals.h"
 
 
+uint16_t dma = 0;
+
 static uint16_t get_xa(void)
 {
     return (cpu->registers->x << 8) | cpu->registers->a;
@@ -71,12 +73,22 @@ void bios_const(void)
     }
 }
 
-void sfos_c_printstr(void)
+void bios_conputs(void)
 {
     char* pp = ram;
     pp += get_xa();
-    printf("%s", pp);
+    uint8_t len = strlen(pp);
+    do
+    {
+        bios_conout(*pp++);
+    } while (len-- > 0);
     set_result(0, true);
+
+}
+
+void sfos_c_printstr(void)
+{
+    bios_conputs();
 }
 
 void sfos_c_readstr(void)
@@ -98,6 +110,12 @@ void sfos_c_readstr(void)
     set_result(xa, true);
 }
 
+static void sfos_setdma()
+{
+    dma = get_xa();
+}
+
+
 void sfos_entry()
 {
     switch(cpu->registers->y) {
@@ -116,7 +134,12 @@ void sfos_entry()
         case C_READSTR:
             sfos_c_readstr();
             break;
+        case 14:
+            sfos_setdma();
+        case 23:
+            set_result(0xBEFF, true);
+            break;
         default:
-            fatal("unimplimented [%02x]", cpu->registers->y);
+            fatal("unimplimented [%d]", cpu->registers->y);
     }
 }

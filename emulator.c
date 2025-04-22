@@ -271,6 +271,7 @@ static void debug(void)
     showregs();
     while (!go)
     {
+        cm_on();
         char* cmdline = readline("debug>");
         if (!cmdline)
             exit(0);
@@ -311,6 +312,7 @@ static void debug(void)
         }
 
         free(cmdline);
+        cm_off();
     }
 }
 
@@ -385,6 +387,10 @@ void emulator_run(void)
                 continue;
             case BIOS_CONST:
                 bios_const();
+                rts();
+                continue;
+            case BIOS_CONPUTS:
+                bios_conputs();
                 rts();
                 continue;
             case EXIT_ADDRESS:

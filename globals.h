@@ -54,6 +54,9 @@ extern void sfos_entry();
 extern void bios_conin();
 extern void bios_conout();
 extern void bios_const();
+extern void bios_conputs();
 
+extern void cm_on();
+extern void cm_off();
 #endif
 
