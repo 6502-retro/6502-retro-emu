@@ -39,8 +39,6 @@ void cm_on(void)
     tcsetattr(STDIN_FILENO, TCSANOW, &t); 
 }
 
-
-
 void fatal(const char* message, ...)
 {
     va_list ap;
