@@ -43,20 +43,20 @@ enum {
     SFOS_D_CREATEFCB,       //7
     SFOS_D_PARSEFCB,        //8
     SFOS_D_FINDFIRST,       //9
-    SFOS_D_FINDNEXT,        //10
-    SFOS_D_MAKE,            //11
-    SFOS_D_OPEN,            //12
-    SFOS_D_CLOSE,           //13
-    SFOS_D_SETDMA,          //14
-    SFOS_D_READSEQBLOCK,    //15
-    SFOS_D_WRITESEQBLOCK,   //16
-    SFOS_D_READSEQBYTE,     //17
-    SFOS_D_WRITESEQBYTE,    //18
-    SFOS_D_SETLBA,          //19
-    SFOS_D_READRAWBLOCK,    //20
-    SFOS_D_WRITERAWBLOCK,   //21
-    SFOS_S_SETTPA,          //22
-    SFOS_S_GETTPA,          //23
+    SFOS_D_FINDNEXT,        //10 A
+    SFOS_D_MAKE,            //11 B
+    SFOS_D_OPEN,            //12 C
+    SFOS_D_CLOSE,           //13 D
+    SFOS_D_SETDMA,          //14 E
+    SFOS_D_READSEQBLOCK,    //15 F
+    SFOS_D_WRITESEQBLOCK,   //16 10
+    SFOS_D_READSEQBYTE,     //17 11
+    SFOS_D_WRITESEQBYTE,    //18 12
+    SFOS_D_SETLBA,          //19 13
+    SFOS_D_READRAWBLOCK,    //20 14
+    SFOS_D_WRITERAWBLOCK,   //21 15
+    SFOS_S_SETTPA,          //22 16
+    SFOS_S_GETTPA,          //23 17
 };
 
 enum{

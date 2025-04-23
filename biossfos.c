@@ -42,6 +42,9 @@ uint16_t dma = 0;
 uint32_t lba = 0;
 uint8_t drive = 0;
 uint8_t current_dirpos = 0;
+uint32_t filesize = 0;
+char* bufptr;
+char* bufend;
 
 uint8_t sdbuf[512];
 
@@ -287,8 +290,8 @@ static void sfos_d_findnext(void)
     _fcb* search_fcb = (_fcb*)pp;
 
     lba = ((drive-1)*0x10)+0x80;
-
     uint32_t w = lba * 512;
+
     for (uint8_t i=0; i< 16; i++)
     {
         if (fseek(sdimg, w, 0)==-1)
@@ -321,6 +324,140 @@ static void sfos_d_findnext(void)
     set_result(FILE_NOT_FOUND, false);
 }
 
+void sfos_d_parsefcb(void)
+{
+    uint16_t xa = get_xa();
+    char* pp = ram;
+    pp+= xa;
+    char* cmd = (char*)pp;
+
+    char* pf = ram;
+    pf+=dma;
+    _fcb* f = (_fcb*)pf;
+
+    char c;
+
+    // populate fcb f with a filename and drive from cmd.
+    if(cmd[1] == ':')
+    {
+        f->DRIVE = 'A' - cmd[0];
+        cmd+=2;
+    } else {
+        f->DRIVE = drive;
+    }
+    uint8_t i = 0;
+    do
+    {
+        c = *cmd++;
+        if ((c == '.') || (c=='?') ||(c=='*') || (c==' ') || (c=='\0')) {
+            cmd --;
+            c = ' ';
+        }
+
+        f->NAME[i] = toupper(c);
+        i++;
+    } while (i < 8);
+    cmd ++;
+    i = 0;
+    do {
+        c = *cmd++;
+        if ((c == '.') || (c=='?') ||(c=='*') || (c==' ') || (c=='\0'))
+        {
+            cmd --;
+            c = ' ';
+        }
+        f->NAME[i+8] = toupper(c);
+        i++;
+    } while (i < 3);
+
+    set_result(OK, true);
+}
+
+void sfos_d_open(void)
+{
+    uint16_t xa = get_xa();
+    uint8_t* pp = ram;
+    pp += xa;
+    _fcb* f = (_fcb*)pp;
+
+    uint8_t drive = f->DRIVE;
+    if (drive != 0)
+    {
+        cpu->registers->a = drive;
+        sfos_d_getsetdrive();
+        if (cpu->registers->p & 1 == 1)
+        {
+            set_result(0, false);
+            return;
+        }
+    }
+
+    cpu->registers->a = xa & 0xFF;
+    cpu->registers->x = xa >> 8;
+    sfos_d_findfirst();
+    if (cpu->registers->p & 1 == 1)
+    {
+        set_result(FILE_NOT_FOUND, false);
+        return;
+    }
+
+    dma = f->LOAD;
+    f->CR = 0;
+    filesize = f->SIZE;
+    set_result(OK, true);
+}
+
+void sfos_d_setdma(void)
+{
+    dma = get_xa();
+    char* bufend = ram;
+    char* bufptr = ram;
+    bufend += dma + 512;
+    bufptr += dma;
+}
+
+void sfos_d_readseqblock(void)
+{
+    uint16_t xa = get_xa();
+    uint8_t* pp = ram;
+    pp += xa;
+    _fcb* f = (_fcb*)pp;
+    lba = 0 | ( (drive<<16) | (f->FILE_NUM<<8) | (f->CR) );
+    bios_sdread();
+    if (cpu->registers->p & 1 == 1)
+        set_result(0, false);
+    if (f->CR++ == 0)
+    {
+        set_result(FILE_MAX_REACHED, false);
+        return;
+    }
+    else
+        set_result(OK, true);
+}
+
+void sfos_d_readseqbyte(void)
+{
+    uint8_t c = *bufptr++;
+    if (bufptr == bufend)
+    {
+        bufptr = ram;
+        bufptr += dma;
+        bufend = bufptr + 512;
+        sfos_d_readseqblock();
+        if(cpu->registers->p & 1 == 1)
+        {
+            set_result(DRIVE_ERROR, false);
+            return;
+        }
+    }
+    filesize --;
+    if (filesize == 0)
+        set_result(FILE_EOF, false);
+    else
+        set_result(OK, true);
+}
+
+
 void sfos_entry()
 {
     switch(cpu->registers->y) {
@@ -348,6 +485,22 @@ void sfos_entry()
         case SFOS_D_FINDNEXT:
             sfos_d_findnext();
             break;
+        case SFOS_D_PARSEFCB:
+            sfos_d_parsefcb();
+            break;
+        case SFOS_D_OPEN:
+            sfos_d_open();
+            break;
+        case SFOS_D_SETDMA:
+            sfos_d_setdma();
+            break;
+        case SFOS_D_READSEQBLOCK:
+            sfos_d_readseqblock();
+            break;
+        case SFOS_D_READSEQBYTE:
+            sfos_d_readseqbyte();
+            break;
+
         default:
             showregs();
             fatal("Unimplimented SFOS Call");
