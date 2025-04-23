@@ -34,6 +34,8 @@ static void set_result(uint16_t xa, bool succeeded)
 }
 
 
+/* ---- BIOS FUNCTIONS ------------------------------------------------------*/
+
 void bios_conout()
 {
     (void)write(1, &cpu->registers->a, 1);
@@ -98,6 +100,14 @@ void bios_conputs(void)
         (void)write(1, pp, 1);
 }
 
+void bios_conbyte(void)
+{
+    uint8_t c = cpu->registers->a;
+    printf("%02X", c);
+}
+
+/* ---- SFOS FUNCTIONS ------------------------------------------------------*/
+
 void sfos_c_printstr(void)
 {
     bios_conputs();
@@ -140,25 +150,20 @@ static void sfos_setdma()
 void sfos_entry()
 {
     switch(cpu->registers->y) {
-        case C_READ:
+        case SFOS_C_READ:
             bios_conin();
             break;
-        case C_WRITE:
+        case SFOS_C_WRITE:
             bios_conout();
             break;
-        case C_STATUS:
+        case SFOS_C_STATUS:
             bios_const();
             break;
-        case C_PRINTSTR:
+        case SFOS_C_PRINTSTR:
             sfos_c_printstr();
             break;
-        case C_READSTR:
+        case SFOS_C_READSTR:
             sfos_c_readstr();
-            break;
-        case 14:
-            sfos_setdma();
-        case 23:
-            set_result(0xBEFF, true);
             break;
         default:
             fatal("unimplimented [%d]", cpu->registers->y);

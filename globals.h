@@ -1,3 +1,4 @@
+// vim: set sw=4 ts=4 et:
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
@@ -9,31 +10,35 @@
 #define SFOS_ADDRESS 0xFF00
 #define EXIT_ADDRESS 0x206
 
-#define	BIOS_DISPATCH	0x200
-#define	BIOS_REBOOT	BIOS_DISPATCH + 3
-#define	BIOS_WBOOT	BIOS_REBOOT + 3
-#define	BIOS_CONOUT	BIOS_WBOOT + 3
-#define	BIOS_CONIN	BIOS_CONOUT + 3
-#define	BIOS_CONST	BIOS_CONIN + 3
-#define	BIOS_CONPUTS	BIOS_CONST + 3
-#define	BIOS_CONBYTE	BIOS_CONPUTS + 3
-#define	BIOS_CONBEEP	BIOS_CONBYTE + 3
-#define	BIOS_SN_START	BIOS_CONBEEP + 3
-#define	BIOS_SN_SILENCE	BIOS_SN_START + 3
-#define	BIOS_SN_STOP	BIOS_SN_SILENCE + 3
-#define	BIOS_SN_SEND	BIOS_SN_STOP + 3
-#define	BIOS_LED_ON	BIOS_SN_SEND + 3
-#define	BIOS_LED_OFF	BIOS_LED_ON + 3
-#define	BIOS_GET_BUTTON BIOS_LED_OFF + 3
-#define	BIOS_ERROR_CODE BIOS_GET_BUTTON + 3
+#define BIOS_DISPATCH      0x200
+#define BIOS_REBOOT        0x203
+#define BIOS_WBOOT         0x206
+#define BIOS_CONOUT        0x209
+#define BIOS_CONIN         0x20c
+#define BIOS_CONST         0x20f
+#define BIOS_CONPUTS       0x212
+#define BIOS_CONBYTE       0x215
+#define BIOS_SETDMA        0x218
+#define BIOS_SETLBA        0x21b
+#define BIOS_SDREAD        0x21e
+#define BIOS_SDRITE        0x221
+#define BIOS_CONBEEP       0x224
+#define BIOS_SN_START      0x227
+#define BIOS_SN_SILENCE    0x22a
+#define BIOS_SN_STOP       0x22d
+#define BIOS_SN_SEND       0x230
+#define BIOS_LED_ON        0x233
+#define BIOS_LED_OFF       0x236
+#define BIOS_GET_BUTTON    0x239
+#define BIOS_ERROR_CODE    0x23c
 
 enum {
-	S_RESET,
-	C_READ,
-	C_WRITE,
-	C_PRINTSTR,
-	C_READSTR,
-	C_STATUS,
+    SFOS_S_RESET,
+    SFOS_C_READ,
+    SFOS_C_WRITE,
+    SFOS_C_PRINTSTR,
+    SFOS_C_READSTR,
+    SFOS_C_STATUS,
 };
 
 extern M6502* cpu;
@@ -56,6 +61,7 @@ extern void bios_conin();
 extern void bios_conout();
 extern void bios_const();
 extern void bios_conputs();
+extern void bios_conbyte();
 
 extern void cm_on();
 extern void cm_off();

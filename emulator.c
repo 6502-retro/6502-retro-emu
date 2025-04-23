@@ -396,23 +396,37 @@ void emulator_run(void)
             case SFOS_ENTRY:
                 sfos_entry();
                 rts();
-                continue;
+                break;
             case BIOS_CONOUT:
                 bios_conout();
                 rts();
-                continue;
+                break;
             case BIOS_CONIN:
                 bios_conin();
                 rts();
-                continue;
+                break;
             case BIOS_CONST:
                 bios_const();
                 rts();
-                continue;
+                break;
             case BIOS_CONPUTS:
                 bios_conputs();
                 rts();
-                continue;
+                break;
+            case BIOS_CONBYTE:
+                bios_conbyte();
+                rts();
+                break;
+
+            case BIOS_CONBEEP:
+            case BIOS_SN_START:
+            case BIOS_SN_SILENCE:
+            case BIOS_SN_STOP:
+            case BIOS_SN_SEND:
+            case BIOS_LED_ON:
+            case BIOS_LED_OFF:
+            case BIOS_GET_BUTTON:
+                fatal("bios_call at address %04x unimplimented", pc);
             case EXIT_ADDRESS:
                 fatal("Exiting...");
         }
