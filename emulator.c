@@ -13,6 +13,8 @@ M6502* cpu;
 uint8_t ram[0x10000];
 bool breakpoints[0x10000];
 
+bool ctrlc = false;
+
 struct watchpoint
 {
     uint16_t address;
@@ -262,16 +264,18 @@ static void cmd_help(void)
         "  u <addr> <len>  unassemble memory\n"
         "  s               single step\n"
         "  g               continue\n"
+        "  q               quit\n"
         "  trace 0|1       enable tracing\n");
 }
 
-static void debug(void)
+void debug(void)
 {
     bool go = false;
+
     showregs();
+    cm_on();
     while (!go)
     {
-        cm_on();
         char* cmdline = readline("debug>");
         if (!cmdline)
             exit(0);
@@ -281,6 +285,8 @@ static void debug(void)
         {
             if (strcmp(token, "?") == 0)
                 cmd_help();
+            if (strcmp(token, "q") == 0)
+                exit(0);
             else if (strcmp(token, "r") == 0)
                 cmd_register();
             else if (strcmp(token, "b") == 0)
@@ -310,10 +316,10 @@ static void debug(void)
             else
                 printf("Bad command\n");
         }
-
         free(cmdline);
-        cm_off();
     }
+
+    cm_off();
 }
 
 static int rts(void)
@@ -322,6 +328,16 @@ static int rts(void)
     pc = (uint16_t)ram[++cpu->registers->s + 0x100];
     pc |= (uint16_t)ram[++cpu->registers->s + 0x100] << 8;
     cpu->registers->pc = pc + 1;
+}
+
+static void sigint_cb(int number)
+{
+    if (!ctrlc)
+        ctrlc = true;
+    else
+    {
+        exit(0);
+    }
 }
 
 static void sigusr1_cb(int number)
@@ -339,6 +355,10 @@ void emulator_init(void)
 
     struct sigaction action = {.sa_handler = sigusr1_cb};
     sigaction(SIGUSR1, &action, NULL);
+
+    struct sigaction intaction = {.sa_handler = sigint_cb};
+    sigaction(SIGINT, &intaction, NULL);
+
     cpu->registers->pc = 0x800;
 }
 

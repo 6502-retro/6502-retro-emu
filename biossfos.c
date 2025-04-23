@@ -45,33 +45,48 @@ void bios_conin()
     (void)read(0, &c, 1);
     if (c == '\n')
         c = '\r';
+    if(c==0x18) {
+        debug();
+        return;
+    }
     set_result(c, true);
 }
 
-
 void bios_const(void)
 {
-    uint8_t c=0;
-
-    struct pollfd pollfd = {0, POLLIN, 0};
-    poll(&pollfd, 1, 0);
-    if (pollfd.revents & POLLIN)
+    if (!ctrlc)
     {
-        (void)read(0,&c,1);
-        if(c=='\n')
-            c='\r';
-        if(c==0x7F)
-            c='\b';
-        if (c=='~')
-            c=3;
-        cpu->registers->a = c;
+        uint8_t c=0;
+
+        struct pollfd pollfd = {0, POLLIN, 0};
+        poll(&pollfd, 1, 0);
+        if (pollfd.revents & POLLIN)
+        {
+            (void)read(0,&c,1);
+            if(c=='\n')
+                c='\r';
+            if(c==0x7F)
+                c='\b';
+            if(c==0x18) {
+                debug();
+                return;
+            }
+            cpu->registers->a = c;
+            cpu->registers->p |= 0x01;
+            cpu->registers->p &= ~0x02;
+        }
+        else {
+            cpu->registers->a = 0;
+            cpu->registers->p &= ~0x01;
+            cpu->registers->p |= 0x02;
+        }
+    }
+    else
+    {
+        cpu->registers->a = 3;
         cpu->registers->p |= 0x01;
         cpu->registers->p &= ~0x02;
-    }
-    else {
-        cpu->registers->a = 0;
-        cpu->registers->p &= ~0x01;
-        cpu->registers->p |= 0x02;
+        ctrlc = false;
     }
 }
 
@@ -79,13 +94,8 @@ void bios_conputs(void)
 {
     char* pp = ram;
     pp += get_xa();
-    uint8_t len = strlen(pp);
-    do
-    {
-        bios_conout(*pp++);
-    } while (len-- > 0);
-    set_result(0, true);
-
+    while (*pp++ != 0)
+        (void)write(1, pp, 1);
 }
 
 void sfos_c_printstr(void)
@@ -101,7 +111,16 @@ void sfos_c_readstr(void)
 
     char* start = pp;
 
+    cm_on();
     char* buf = readline(NULL);
+    cm_off();
+
+    if (strcmp(buf, "DEBUG")==0)
+    {
+        debug();
+        set_result(0, true);
+        return;
+    }
     uint8_t len = strlen(buf);
     pp ++;
     memcpy(pp, buf, 127);

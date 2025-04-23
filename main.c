@@ -55,14 +55,15 @@ static void syntax(void)
     printf("  -h             this help\n");
     printf("  -d             enter debugger on startup\n");
     printf("  -t             enable instruction tracing on startup\n");
-    printf("  -m NUM         top of memory (by default, 0xff\n");
-    printf("  -p DRIVE=PATH  map a drive to a path (by default, A=.)\n");
     printf(
         "If command is specified, a Unix file of that name will be loaded "
         "and\n");
     printf(
         "injected directly into memory (it's not loaded through the CCP).\n");
     printf("The first two arguments are mapped to the standard FCBs.\n");
+    printf("\nCTRL+C will usually issue a CTRL+C to the program.");
+    printf("\nCTRL+X will exit to the debugger.  If that doesn't work, try");
+    printf("\ntyping `DEBUG` which can help when the emulator is in readline mode\n");
     exit(1);
 }
 

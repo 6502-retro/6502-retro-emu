@@ -48,6 +48,7 @@ extern void fatal(const char* message, ...);
 extern void emulator_init(void);
 extern void emulator_run(void);
 extern void showregs(void);
+extern void debug(void);
 
 extern void sfos_entry();
 
@@ -58,5 +59,6 @@ extern void bios_conputs();
 
 extern void cm_on();
 extern void cm_off();
+extern bool ctrlc;
 #endif
 
