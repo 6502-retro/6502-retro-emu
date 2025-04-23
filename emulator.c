@@ -417,7 +417,22 @@ void emulator_run(void)
                 bios_conbyte();
                 rts();
                 break;
-
+            case BIOS_SETDMA:
+                bios_setdma();
+                rts();
+                break;
+            case BIOS_SETLBA:
+                bios_setlba();
+                rts();
+                break;
+            case BIOS_SDREAD:
+                bios_sdread();
+                rts();
+                break;
+            case BIOS_SDWRITE:
+                bios_sdwrite();
+                rts();
+                break;
             case BIOS_CONBEEP:
             case BIOS_SN_START:
             case BIOS_SN_SILENCE:
@@ -426,9 +441,13 @@ void emulator_run(void)
             case BIOS_LED_ON:
             case BIOS_LED_OFF:
             case BIOS_GET_BUTTON:
-                fatal("bios_call at address %04x unimplimented", pc);
+                showregs();
+                fatal("bios_call at address unimplimented");
+                break;
             case EXIT_ADDRESS:
+                showregs();
                 fatal("Exiting...");
+                break;
         }
 
         if (ram[pc] == 0)

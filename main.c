@@ -16,6 +16,7 @@
 
 bool flag_enter_debugger = false;
 char* const* user_command_line = NULL;
+FILE* sdimg;
 
 void cm_off(void)
 {
@@ -99,13 +100,21 @@ end_of_flags:
 
 static void read_file()
 {
-    printf("reading in file: %s\n", user_command_line[0]);
+    printf("reading in file: %s\n", user_command_line[1]);
 
-    int fd = open(user_command_line[0], O_RDONLY);
+    int fd = open(user_command_line[1], O_RDONLY);
     if (fd == -1)
         fatal("couldn't open program: %s", strerror(errno));
     read(fd, &ram[TPA_BASE], SFOS_ADDRESS - TPA_BASE);
     close(fd);
+}
+
+static void open_sdimg()
+{
+    printf("opening sdcard image: %s\n", user_command_line[0]);
+    sdimg = fopen(user_command_line[0], "r+");
+    if (!sdimg)
+        fatal("couldn't open sdcard image: %s", strerror(errno));
 }
 
 int main(int argc, char* const* argv)
@@ -113,11 +122,13 @@ int main(int argc, char* const* argv)
     cm_off();
     parse_options(argc, argv);
     emulator_init();
+    open_sdimg();
     read_file();
     for (;;)
     {
         emulator_run();
     }
     cm_on();
+    fclose(sdimg);
     return 0;
 }

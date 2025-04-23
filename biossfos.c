@@ -12,6 +12,8 @@
 
 
 uint16_t dma = 0;
+uint32_t lba = 0;
+//uint8_t sdbuf[512] = {0};
 
 static uint16_t get_xa(void)
 {
@@ -106,6 +108,34 @@ void bios_conbyte(void)
     printf("%02X", c);
 }
 
+void bios_setdma()
+{
+    dma = get_xa();
+}
+
+void bios_setlba()
+{
+    uint8_t* pp = ram;
+    pp += get_xa();
+    lba = (uint32_t)*pp;
+}
+
+void bios_sdread()
+{
+    char* pp = ram;
+    pp += dma;
+    fseek(sdimg, lba*512, 0);
+    (void)fread(pp, 1, 512, sdimg);
+}
+
+void bios_sdwrite()
+{
+    char* pp = ram;
+    pp += dma;
+    fseek(sdimg, lba*512, 0);
+    (void)fwrite(pp, 1, 512, sdimg);
+}
+
 /* ---- SFOS FUNCTIONS ------------------------------------------------------*/
 
 void sfos_c_printstr(void)
@@ -139,11 +169,6 @@ void sfos_c_readstr(void)
     else
         *start = 127;
     set_result(xa, true);
-}
-
-static void sfos_setdma()
-{
-    dma = get_xa();
 }
 
 
