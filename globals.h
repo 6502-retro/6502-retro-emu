@@ -33,12 +33,43 @@
 #define BIOS_ERROR_CODE    0x23c
 
 enum {
-    SFOS_S_RESET,
-    SFOS_C_READ,
-    SFOS_C_WRITE,
-    SFOS_C_PRINTSTR,
-    SFOS_C_READSTR,
-    SFOS_C_STATUS,
+    SFOS_S_RESET,           //0
+    SFOS_C_READ,            //1
+    SFOS_C_WRITE,           //2
+    SFOS_C_PRINTSTR,        //3
+    SFOS_C_READSTR,         //4
+    SFOS_C_STATUS,          //5
+    SFOS_D_GETSETDRIVE,     //6
+    SFOS_D_CREATEFCB,       //7
+    SFOS_D_PARSEFCB,        //8
+    SFOS_D_FINDFIRST,       //9
+    SFOS_D_FINDNEXT,        //10
+    SFOS_D_MAKE,            //11
+    SFOS_D_OPEN,            //12
+    SFOS_D_CLOSE,           //13
+    SFOS_D_SETDMA,          //14
+    SFOS_D_READSEQBLOCK,    //15
+    SFOS_D_WRITESEQBLOCK,   //16
+    SFOS_D_READSEQBYTE,     //17
+    SFOS_D_WRITESEQBYTE,    //18
+    SFOS_D_SETLBA,          //19
+    SFOS_D_READRAWBLOCK,    //20
+    SFOS_D_WRITERAWBLOCK,   //21
+    SFOS_S_SETTPA,          //22
+    SFOS_S_GETTPA,          //23
+};
+
+enum{
+    OK,
+    FILE_NOT_FOUND,
+    FILE_EXISTS,
+    FILE_MAX_REACHED,
+    FILE_EOF,
+    END_OF_DIR,
+    DRIVE_ERROR,
+    DRIVE_FULL,
+    PARSE_ERROR,
+    OUT_OF_MEMORY
 };
 
 extern M6502* cpu;

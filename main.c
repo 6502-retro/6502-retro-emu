@@ -48,6 +48,7 @@ void fatal(const char* message, ...)
     vfprintf(stderr, message, ap);
     fprintf(stderr, "\n");
     cm_on();
+    fclose(sdimg);
     exit(1);
 }
 static void syntax(void)

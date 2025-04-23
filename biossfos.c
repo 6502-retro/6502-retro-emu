@@ -11,9 +11,39 @@
 #include "globals.h"
 
 
+/* forward declarations */
+static void sfos_d_findnext(void);
+
+
+typedef struct {
+    uint8_t isloggedin;
+    uint16_t maxdir;
+} logvec;
+
+logvec logvecs[8] = {0};
+
+
+typedef struct {
+    uint8_t     DRIVE;
+    char        NAME[11];
+    uint16_t    LOAD;
+    uint8_t     SC;
+    uint8_t     FILE_NUM;
+    uint8_t     ATTRIB;
+    uint16_t    EXEC;
+    uint8_t     Z1;
+    uint8_t     Z2;
+    uint32_t    SIZE;               // Note we only need 24 bytes for the size.
+    uint8_t     CR;
+    uint8_t     DS;
+} _fcb;
+
 uint16_t dma = 0;
 uint32_t lba = 0;
-//uint8_t sdbuf[512] = {0};
+uint8_t drive = 0;
+uint8_t current_dirpos = 0;
+
+uint8_t sdbuf[512];
 
 static uint16_t get_xa(void)
 {
@@ -171,6 +201,125 @@ void sfos_c_readstr(void)
     set_result(xa, true);
 }
 
+static void login_drive(bool rescan)
+{
+    if(!rescan)
+    {
+        if (logvecs[drive-1].isloggedin)
+            return;
+    }
+    /* a rescan wasn't requested but drive is not logged in so log in anyway */
+    lba = ((drive-1)*0x10)+0x80;
+    uint32_t w = lba * 512;
+    for (uint8_t i=0; i< 16; i++)       /* read in 16 sectors*/
+    {
+        if (fseek(sdimg, w, 0)==-1)
+            fatal("Failed to seek to LBA");
+
+        if (fread(sdbuf, 1, 512, sdimg) == -1)
+            fatal("Failed to read from sdcard");
+
+        _fcb* dirent = (_fcb*)sdbuf;
+        while (dirent < (_fcb*)sdbuf+16)
+        {
+            if (dirent->ATTRIB != 0xE5)
+                logvecs[drive-1].maxdir ++;
+            dirent += 1;
+        }
+
+        w += 512;
+    }
+}
+
+static void sfos_d_getsetdrive(void)
+{
+    uint8_t d = cpu->registers->a;
+    if (d == 0xFF) {
+        set_result(drive, true);
+        return;
+    }
+    if( (d<1) || (d>8)) {
+        set_result(DRIVE_ERROR, false);
+        return;
+    }
+
+    drive = d;
+    login_drive(false);
+    set_result(OK, true);
+}
+
+
+static void replace_wc(char* buff, size_t len)
+{
+    while (len > 0) {
+        if (*buff == '?')
+            *buff = ' ';
+        len --;
+        buff++;
+    }
+}
+
+bool match(char* src, char* dst, uint8_t len)
+{
+    while(len > 0)
+    {
+        if (*src != *dst)
+            if (*dst != '?')
+                return false;
+        len--;
+        src++;
+        dst++;
+    }
+    return true;
+}
+
+static void sfos_d_findfirst(void)
+{
+    current_dirpos = 0;
+    sfos_d_findnext();
+}
+
+static void sfos_d_findnext(void)
+{
+    uint16_t xa = get_xa();
+    uint8_t* pp = ram;
+    pp += xa;
+    _fcb* search_fcb = (_fcb*)pp;
+
+    lba = ((drive-1)*0x10)+0x80;
+
+    uint32_t w = lba * 512;
+    for (uint8_t i=0; i< 16; i++)
+    {
+        if (fseek(sdimg, w, 0)==-1)
+            fatal("Failed to seek to LBA");
+
+        if (fread(sdbuf, 1, 512, sdimg) == -1)
+        fatal("Failed to read from sdcard");
+
+        _fcb* dirent = (_fcb*)sdbuf;
+        dirent += current_dirpos;
+
+        while (dirent < (_fcb*)sdbuf+16)
+        {
+            if (match(dirent->NAME, search_fcb->NAME, 11))
+            {
+                memcpy((char*)search_fcb, (char*)dirent, 27);
+                replace_wc((char*)search_fcb, 12);
+                set_result(OK, true);
+                current_dirpos += 1;
+                return;
+            }
+            else
+            {
+                current_dirpos += 1;
+            }
+            dirent += 1;
+        }
+        w+=512;
+    }
+    set_result(FILE_NOT_FOUND, false);
+}
 
 void sfos_entry()
 {
@@ -190,7 +339,17 @@ void sfos_entry()
         case SFOS_C_READSTR:
             sfos_c_readstr();
             break;
+        case SFOS_D_GETSETDRIVE:
+            sfos_d_getsetdrive();
+            break;
+        case SFOS_D_FINDFIRST:
+            sfos_d_findfirst();
+            break;
+        case SFOS_D_FINDNEXT:
+            sfos_d_findnext();
+            break;
         default:
-            fatal("unimplimented [%d]", cpu->registers->y);
+            showregs();
+            fatal("Unimplimented SFOS Call");
     }
 }

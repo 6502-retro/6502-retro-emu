@@ -2,3 +2,4 @@ test.*
 !test.s
 emu
 cmon
+*.img
