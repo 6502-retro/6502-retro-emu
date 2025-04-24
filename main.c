@@ -17,6 +17,7 @@
 bool flag_enter_debugger = false;
 char* const* user_command_line = NULL;
 FILE* sdimg;
+uint16_t tpa;
 
 void cm_off(void)
 {
@@ -104,10 +105,12 @@ static void read_file()
     printf("reading in file: %s\n", user_command_line[1]);
 
     int fd = open(user_command_line[1], O_RDONLY);
+
     if (fd == -1)
         fatal("couldn't open program: %s", strerror(errno));
-    read(fd, &ram[TPA_BASE], SFOS_ADDRESS - TPA_BASE);
+    uint32_t len = read(fd, &ram[TPA_BASE], SFOS_ADDRESS - TPA_BASE);
     close(fd);
+    tpa = len;
 }
 
 static void open_sdimg()

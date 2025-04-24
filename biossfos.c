@@ -22,7 +22,6 @@ typedef struct {
 
 logvec logvecs[8] = {0};
 
-
 typedef struct {
     uint8_t     DRIVE;
     char        NAME[11];
@@ -38,13 +37,12 @@ typedef struct {
     uint8_t     DS;
 } _fcb;
 
-uint16_t dma = 0;
-uint32_t lba = 0;
-uint8_t drive = 0;
-uint8_t current_dirpos = 0;
-uint32_t filesize = 0;
-char* bufptr;
-char* bufend;
+static uint16_t dma = 0;
+static uint32_t lba = 0;
+static uint8_t drive = 0;
+static uint8_t current_dirpos = 0;
+static char* bufptr = ram;
+static char* bufend = ram;
 
 uint8_t sdbuf[512];
 
@@ -129,10 +127,12 @@ void bios_const(void)
 
 void bios_conputs(void)
 {
-    char* pp = ram;
-    pp += get_xa();
-    while (*pp++ != 0)
+    uint16_t xa = get_xa();
+    char* pp = ram + xa;
+    do
+    {
         (void)write(1, pp, 1);
+    } while (*pp++ != 0);
 }
 
 void bios_conbyte(void)
@@ -157,8 +157,19 @@ void bios_sdread()
 {
     char* pp = ram;
     pp += dma;
-    fseek(sdimg, lba*512, 0);
-    (void)fread(pp, 1, 512, sdimg);
+    if (fseek(sdimg, lba*512, 0) == -1)
+    {
+        set_result(DRIVE_ERROR, false);
+        ram[BIOS_ERROR_CODE] = cpu->registers->a;
+        return;
+    }
+    if (fread(pp, 1, 512, sdimg)==-1)
+    {
+        set_result(DRIVE_ERROR, false);
+        ram[BIOS_ERROR_CODE] = cpu->registers->a;
+        return;
+    };
+    set_result(OK, true);
 }
 
 void bios_sdwrite()
@@ -403,17 +414,18 @@ void sfos_d_open(void)
 
     dma = f->LOAD;
     f->CR = 0;
-    filesize = f->SIZE;
     set_result(OK, true);
 }
 
 void sfos_d_setdma(void)
 {
     dma = get_xa();
-    char* bufend = ram;
-    char* bufptr = ram;
-    bufend += dma + 512;
+
+    bufend = ram;
+    bufptr = ram;
+
     bufptr += dma;
+    bufend += dma + 512;
 }
 
 void sfos_d_readseqblock(void)
@@ -423,40 +435,57 @@ void sfos_d_readseqblock(void)
     pp += xa;
     _fcb* f = (_fcb*)pp;
     lba = 0 | ( (drive<<16) | (f->FILE_NUM<<8) | (f->CR) );
-    bios_sdread();
-    if (cpu->registers->p & 1 == 1)
-        set_result(0, false);
-    if (f->CR++ == 0)
+    f->CR++;
+
+    if (f->CR == 0)
     {
         set_result(FILE_MAX_REACHED, false);
+        ram[BIOS_ERROR_CODE] = cpu->registers->a;
+        return;
+    } else if (f->CR > f->SC)
+    {
+        set_result(FILE_EOF, false);
         return;
     }
     else
+    {
+        bios_sdread();
+        if (cpu->registers->p & 1 == 1)
+            set_result(0, false);
+
         set_result(OK, true);
+    }
 }
 
 void sfos_d_readseqbyte(void)
 {
+    uint16_t xa = get_xa();
+    uint8_t* pp = ram;
+    pp += xa;
+    _fcb* f = (_fcb*)pp;
     uint8_t c = *bufptr++;
     if (bufptr == bufend)
     {
         bufptr = ram;
         bufptr += dma;
-        bufend = bufptr + 512;
         sfos_d_readseqblock();
         if(cpu->registers->p & 1 == 1)
         {
-            set_result(DRIVE_ERROR, false);
+            ram[BIOS_ERROR_CODE] = cpu->registers->a;
             return;
         }
-    }
-    filesize --;
-    if (filesize == 0)
+     }
+    f->SIZE --;
+    if (f->SIZE == 0) 
         set_result(FILE_EOF, false);
     else
-        set_result(OK, true);
+        set_result(c, true);
 }
 
+static void sfos_s_gettpa(void)
+{
+    set_result(tpa, true);
+}
 
 void sfos_entry()
 {
@@ -499,6 +528,9 @@ void sfos_entry()
             break;
         case SFOS_D_READSEQBYTE:
             sfos_d_readseqbyte();
+            break;
+        case SFOS_S_GETTPA:
+            sfos_s_gettpa();
             break;
 
         default:

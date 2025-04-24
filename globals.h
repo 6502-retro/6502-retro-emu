@@ -103,5 +103,6 @@ extern void bios_sdwrite();
 extern void cm_on();
 extern void cm_off();
 extern bool ctrlc;
+extern uint16_t tpa;
 #endif
 
