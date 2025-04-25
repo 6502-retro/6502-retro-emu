@@ -128,7 +128,7 @@ int main(int argc, char* const* argv)
 
     load_sd_image();
 
-    cpu->registers->pc = 0xEE13;    // magic cboot number.
+    cpu->registers->pc = 0xEE03;    // magic cboot number.
 
     for (;;)
     {

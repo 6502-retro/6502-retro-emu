@@ -130,18 +130,18 @@ void bios_sdread()
     uint32_t l = *lba;
     if (fseek(sdimg, l * 512, 0) == -1)
     {
-        set_result(SEEK_ERROR, true);
+        set_result(SEEK_ERROR, false);
         ram[BIOS_ERROR_CODE] = cpu->registers->a;
         return;
     }
     uint16_t len = fread(pp, 1, 512, sdimg);
     if (len == -1)
     {
-        set_result(DRIVE_ERROR, true);
+        set_result(DRIVE_ERROR, false);
         ram[BIOS_ERROR_CODE] = cpu->registers->a;
         return;
     };
-    set_result(OK, false);
+    set_result(OK, true);
 }
 
 void bios_sdwrite()
@@ -152,17 +152,17 @@ void bios_sdwrite()
     uint32_t l = *lba;
     if (fseek(sdimg, l * 512, 0) == -1)
     {
-        set_result(SEEK_ERROR, true);
+        set_result(SEEK_ERROR, false);
         ram[BIOS_ERROR_CODE] = cpu->registers->a;
         return;
     }
     uint16_t len = fwrite(pp, 1, 512, sdimg);
     if (len == -1)
     {
-        set_result(DRIVE_ERROR, true);
+        set_result(DRIVE_ERROR, false);
         ram[BIOS_ERROR_CODE] = cpu->registers->a;
         return;
     };
-    set_result(OK, false);
+    set_result(OK, true);
 }
 
