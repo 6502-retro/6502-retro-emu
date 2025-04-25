@@ -100,34 +100,36 @@ end_of_flags:
     user_command_line = &argv[optind];
 }
 
-static void read_file()
-{
-    printf("reading in file: %s\n", user_command_line[1]);
-
-    int fd = open(user_command_line[1], O_RDONLY);
-
-    if (fd == -1)
-        fatal("couldn't open program: %s", strerror(errno));
-    uint32_t len = read(fd, &ram[TPA_BASE], SFOS_ADDRESS - TPA_BASE);
-    close(fd);
-    tpa = len;
-}
-
-static void open_sdimg()
+static void load_sd_image(void)
 {
     printf("opening sdcard image: %s\n", user_command_line[0]);
     sdimg = fopen(user_command_line[0], "r+");
     if (!sdimg)
         fatal("couldn't open sdcard image: %s", strerror(errno));
+
+
+    if (fseek(sdimg, 512, 0) == -1)
+        fatal("Could not seek to os on SDCARD");
+
+
+    printf("reading sdcard image: %s\n", user_command_line[0]);
+    char* pp = ram;
+    pp += 0xE000;
+    if (fread(pp, 1, 0x2000, sdimg)==-1)
+        fatal("Could not load OS");
 }
 
 int main(int argc, char* const* argv)
 {
     cm_off();
     parse_options(argc, argv);
+
     emulator_init();
-    open_sdimg();
-    read_file();
+
+    load_sd_image();
+
+    cpu->registers->pc = 0xEE13;    // magic cboot number.
+
     for (;;)
     {
         emulator_run();

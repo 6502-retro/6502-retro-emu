@@ -7,11 +7,11 @@
 
 #define TPA_BASE 0x0800
 #define SFOS_ENTRY 0x200
-#define SFOS_ADDRESS 0xFF00
-#define EXIT_ADDRESS BIOS_WBOOT
+#define SFOS_ADDRESS 0x10000
+#define EXIT_ADDRESS 0x0000
 
 #define BIOS_DISPATCH      0x200
-#define BIOS_REBOOT        0x203
+#define BIOS_CBOOT         0x203
 #define BIOS_WBOOT         0x206
 #define BIOS_CONOUT        0x209
 #define BIOS_CONIN         0x20c
@@ -32,33 +32,6 @@
 #define BIOS_GET_BUTTON    0x239
 #define BIOS_ERROR_CODE    0x23c
 
-enum {
-    SFOS_S_RESET,           //0
-    SFOS_C_READ,            //1
-    SFOS_C_WRITE,           //2
-    SFOS_C_PRINTSTR,        //3
-    SFOS_C_READSTR,         //4
-    SFOS_C_STATUS,          //5
-    SFOS_D_GETSETDRIVE,     //6
-    SFOS_D_CREATEFCB,       //7
-    SFOS_D_PARSEFCB,        //8
-    SFOS_D_FINDFIRST,       //9
-    SFOS_D_FINDNEXT,        //10 A
-    SFOS_D_MAKE,            //11 B
-    SFOS_D_OPEN,            //12 C
-    SFOS_D_CLOSE,           //13 D
-    SFOS_D_SETDMA,          //14 E
-    SFOS_D_READSEQBLOCK,    //15 F
-    SFOS_D_WRITESEQBLOCK,   //16 10
-    SFOS_D_READSEQBYTE,     //17 11
-    SFOS_D_WRITESEQBYTE,    //18 12
-    SFOS_D_SETLBA,          //19 13
-    SFOS_D_READRAWBLOCK,    //20 14
-    SFOS_D_WRITERAWBLOCK,   //21 15
-    SFOS_S_SETTPA,          //22 16
-    SFOS_S_GETTPA,          //23 17
-};
-
 enum{
     OK,
     FILE_NOT_FOUND,
@@ -69,7 +42,8 @@ enum{
     DRIVE_ERROR,
     DRIVE_FULL,
     PARSE_ERROR,
-    OUT_OF_MEMORY
+    OUT_OF_MEMORY,
+    SEEK_ERROR
 };
 
 extern M6502* cpu;
@@ -87,12 +61,11 @@ extern void emulator_run(void);
 extern void showregs(void);
 extern void debug(void);
 
-extern void sfos_entry();
-
+extern void bios_cboot();
+extern void bios_wboot();
 extern void bios_conin();
 extern void bios_conout();
 extern void bios_const();
-extern void bios_conputs();
 extern void bios_conbyte();
 
 extern void bios_setdma();

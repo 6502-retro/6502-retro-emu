@@ -359,7 +359,6 @@ void emulator_init(void)
     struct sigaction intaction = {.sa_handler = sigint_cb};
     sigaction(SIGINT, &intaction, NULL);
 
-    cpu->registers->pc = 0x800;
 }
 
 void emulator_run(void)
@@ -369,7 +368,7 @@ void emulator_run(void)
         uint16_t pc = cpu->registers->pc;
         singlestepping |= breakpoints[pc];
 
-        if ((pc < SFOS_ADDRESS) && (ram[pc] == 0))
+        if (ram[pc] == 0)
             singlestepping = true;
 
         for (int i = 0; i < sizeof(watchpoints) / sizeof(*watchpoints); i++)
@@ -393,9 +392,8 @@ void emulator_run(void)
 
         switch (pc)
         {
-            case SFOS_ENTRY:
-                sfos_entry();
-                rts();
+            case BIOS_CBOOT:
+                bios_cboot();
                 break;
             case BIOS_CONOUT:
                 bios_conout();
@@ -407,14 +405,6 @@ void emulator_run(void)
                 break;
             case BIOS_CONST:
                 bios_const();
-                rts();
-                break;
-            case BIOS_CONPUTS:
-                bios_conputs();
-                rts();
-                break;
-            case BIOS_CONBYTE:
-                bios_conbyte();
                 rts();
                 break;
             case BIOS_SETDMA:
@@ -441,8 +431,7 @@ void emulator_run(void)
             case BIOS_LED_ON:
             case BIOS_LED_OFF:
             case BIOS_GET_BUTTON:
-                showregs();
-                fatal("bios_call at address unimplimented");
+                rts();
                 break;
             case EXIT_ADDRESS:
                 showregs();
