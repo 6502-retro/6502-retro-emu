@@ -5,7 +5,7 @@ RM      = rm -f
 SRCS = \
        lib6502/lib6502.c \
        emulator.c \
-       biossfos.c \
+       bios.c \
        main.c
 
 default: all
