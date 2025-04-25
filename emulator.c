@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <readline/readline.h>
-#include <readline/history.h>
 #include <unistd.h>
 #include "globals.h"
 

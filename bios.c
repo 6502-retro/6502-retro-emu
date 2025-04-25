@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <signal.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>

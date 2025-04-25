@@ -65,8 +65,7 @@ static void syntax(void)
         "injected directly into memory (it's not loaded through the CCP).\n");
     printf("The first two arguments are mapped to the standard FCBs.\n");
     printf("\nCTRL+C will usually issue a CTRL+C to the program.");
-    printf("\nCTRL+X will exit to the debugger.  If that doesn't work, try");
-    printf("\ntyping `DEBUG` which can help when the emulator is in readline mode\n");
+    printf("\nCTRL+X will exit to the debugger.");
     exit(1);
 }
 
