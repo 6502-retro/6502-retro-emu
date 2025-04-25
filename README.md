@@ -28,7 +28,30 @@ CTRL+X will exit to the debugger.
 
 There is a `make_sdcard.sh` script in the
 [6502-retro-os](https://github.com/6502-retro/6502-retro-os.git) project that
-will create an SDCARD image with the default apps on drive A:
+will create an sdcard image with the default apps on drive A:
+
+## Development
+
+Because this emulator emulates the BIOS only, there will have to be some kind of
+OS on the sdcard image to work with.  So there are two main choices:
+
+1. put the code you're developping into sectors 1 to 16 (inclusive) of the
+   sdcard image.  This is where the OS is copied to by the `make_sdcard.sh` script
+   above. This is what you should do if you're writing a new OS.  The emulator
+   automatically jumps to the address at FFFC.
+   1. This is not actually true right now.  It should, but the 6502-Retro-Os has
+      sdcard initialization which hangs in the emulator.  A magic number is used
+      as the start address for now.  I am thinking of approaches to override
+      this address.  Perhaps with a commandline option.
+2. use the `py_sfs_v2/cli.py` script to copy your compiled `.com` files into one
+   of the 8 drives on the sdcard image.  Then boot the emulator.
+
+_note: there is some work to be done on the `py_sfs_v2/cli.py` script to support
+overwriting files copied to the sdcard image.  I think the intention was that it
+should be doing this, but in latest testing, it does not.  So I think that's a
+bug.  For now, just `era your.com` file inside the OS within the emulator._
+
+## Running
 
 Simply run the emulator and path to this image to get started.
 
@@ -59,6 +82,9 @@ Sleazy debugger
   q               quit
   trace 0|1       enable tracing
 ```
+
+If your code has a `brk` statement in it, then the debugger will automatically
+enter debug mode at that address.
 
 ## Build
 
