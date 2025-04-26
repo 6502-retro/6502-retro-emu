@@ -10,6 +10,8 @@
 
 M6502* cpu;
 uint8_t ram[0x10000];
+uint8_t bank[64][0x2000];
+
 bool breakpoints[0x10000];
 
 bool ctrlc = false;
@@ -344,13 +346,35 @@ static void sigusr1_cb(int number)
     singlestepping = true;
 }
 
+int readMem(M6502 *mpu, uint16_t addr, uint8_t data)
+{
+    uint8_t b = ram[0xBF00];
+    data = bank[b][addr - 0xC000];
+    ram[addr] = data;
+    return  data;
+}
+
+int writeMem(M6502 *mpu, uint16_t addr, uint8_t data)
+{
+    uint8_t b = ram[0xBF00];
+    bank[b][addr - 0xC000] = data;
+    ram[addr] = data;
+    return 0;
+}
+
 void emulator_init(void)
 {
-//   system ("/bin/stty raw");
     memset(ram, 0xea, sizeof(ram));
+
+    ram[0xBF00] = 0;
 
     cpu = M6502_new(NULL, ram, NULL);
     singlestepping = flag_enter_debugger;
+
+    for (uint16_t i = 0xC000; i<0xE000; i++) {
+        cpu->callbacks->write[i]= writeMem;
+        cpu->callbacks->read[i]= readMem;
+    }
 
     struct sigaction action = {.sa_handler = sigusr1_cb};
     sigaction(SIGUSR1, &action, NULL);
