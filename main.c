@@ -18,6 +18,7 @@ bool flag_enter_debugger = false;
 char* const* user_command_line = NULL;
 FILE* sdimg;
 uint16_t tpa;
+uint16_t runaddr = 0xEE03;
 
 void cm_off(void)
 {
@@ -71,6 +72,8 @@ static void syntax(void)
 
 static void parse_options(int argc, char* const* argv)
 {
+
+
     for (;;)
     {
         switch (getopt(argc, argv, "hdt"))
@@ -127,8 +130,11 @@ int main(int argc, char* const* argv)
 
     load_sd_image();
 
-    cpu->registers->pc = 0xEE03;    // magic cboot number.
+    if (user_command_line[1])
+        runaddr = strtoul(user_command_line[1], NULL, 16);
 
+    cpu->registers->pc = runaddr;    // magic cboot number.
+    //
     for (;;)
     {
         emulator_run();
