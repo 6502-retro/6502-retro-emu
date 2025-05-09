@@ -30,7 +30,8 @@
 #define BIOS_LED_ON        0x233
 #define BIOS_LED_OFF       0x236
 #define BIOS_GET_BUTTON    0x239
-#define BIOS_ERROR_CODE    0x23c
+#define BIOS_DELAY_MS      0x23c
+#define BIOS_ERROR_CODE    0x23f
 
 enum{
     OK,

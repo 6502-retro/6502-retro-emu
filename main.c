@@ -130,10 +130,7 @@ int main(int argc, char* const* argv)
 
     load_sd_image();
 
-    if (user_command_line[1])
-        runaddr = strtoul(user_command_line[1], NULL, 16);
-
-    cpu->registers->pc = runaddr;    // magic cboot number.
+    cpu->registers->pc = ram[0xFFFD]<<8|ram[0xFFFC];
     //
     for (;;)
     {
